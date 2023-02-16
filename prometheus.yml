@@ -1,0 +1,56 @@
+version: "3.4"
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  prometheus:
+    restart: unless-stopped
+    build:
+      context: ./prometheus
+    image: prometheus:vd-local
+    user: root
+    volumes:
+      - prom-data:/prometheus
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    network_mode: host
+    entrypoint: choose-config.sh
+    command: ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--log.level=debug"]
+    <<: *logging
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.${PROM_HOST}.entrypoints=web,websecure
+      - traefik.http.routers.${PROM_HOST}.rule=Host(`${PROM_HOST}.${DOMAIN}`)
+      - traefik.http.routers.${PROM_HOST}.tls.certresolver=letsencrypt
+      - traefik.http.services.${PROM_HOST}.loadbalancer.server.port=9090
+    depends_on:
+      - node-exporter
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    command:
+      - '--path.rootfs=/host'
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)'
+      - '--no-collector.ipvs'
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
+      - /etc/hostname:/etc/nodename:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - metrics_scrape=true
+      - metrics_path = "/metrics"
+      - metrics_port = "9100"
+    <<: *logging
+
+volumes:
+  prom-data:
