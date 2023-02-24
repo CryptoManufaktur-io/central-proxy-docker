@@ -51,5 +51,21 @@ services:
       - metrics_port = "9100"
     <<: *logging
 
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - /var/run:/var/run
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+    command:
+      - --docker_only
+    labels:
+      - metrics_scrape=true
+      - metrics_path = "/metrics"
+      - metrics_port = "8080"
+    <<: *logging
+
 volumes:
   prom-data:
