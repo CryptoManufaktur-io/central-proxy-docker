@@ -21,12 +21,6 @@ services:
     entrypoint: choose-config.sh
     command: ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--log.level=debug"]
     <<: *logging
-    labels:
-      - traefik.enable=true
-      - traefik.http.routers.${PROM_HOST}.entrypoints=web,websecure
-      - traefik.http.routers.${PROM_HOST}.rule=Host(`${PROM_HOST}.${DOMAIN}`)
-      - traefik.http.routers.${PROM_HOST}.tls.certresolver=letsencrypt
-      - traefik.http.services.${PROM_HOST}.loadbalancer.server.port=9090
     depends_on:
       - node-exporter
   node-exporter:
@@ -66,11 +60,6 @@ services:
       - metrics_path = "/metrics"
       - metrics_port = "8080"
     <<: *logging
-
-networks:
-  default:
-    name: traefik_default
-    external: true
 
 volumes:
   prom-data:
