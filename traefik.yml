@@ -51,3 +51,7 @@ services:
     <<: *logging
 volumes:
   certs:
+
+networks:
+  default:
+    name: traefik_default
