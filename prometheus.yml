@@ -67,5 +67,10 @@ services:
       - metrics_port = "8080"
     <<: *logging
 
+networks:
+  default:
+    name: traefik_default
+    external: true
+
 volumes:
   prom-data:
