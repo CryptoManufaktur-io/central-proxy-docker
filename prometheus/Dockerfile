@@ -1,7 +1,7 @@
 FROM ubuntu/prometheus
 
 RUN apt-get update && apt-get install  -y bash tzdata
-COPY ./*-prom.yml /etc/prometheus/
+COPY ./global-prom.yml /etc/prometheus/
 COPY ./choose-config.sh /usr/local/bin/choose-config.sh
 
 ENTRYPOINT choose-config.sh

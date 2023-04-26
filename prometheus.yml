@@ -18,11 +18,14 @@ services:
       - prom-data:/prometheus
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./prometheus/custom-prom.yml:/etc/prometheus/custom-prom.yml:ro
     entrypoint: choose-config.sh
-    command: ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--log.level=debug"]
+    command: ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--log.level=${LOG_LEVEL:-info}"]
     <<: *logging
     depends_on:
       - node-exporter
+      - cadvisor
+
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
     command:
