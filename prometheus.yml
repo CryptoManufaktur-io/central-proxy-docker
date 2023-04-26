@@ -40,9 +40,9 @@ services:
       - /sys:/host/sys:ro
       - /etc/localtime:/etc/localtime:ro
     labels:
-      - metrics_scrape=true
-      - metrics_path = "/metrics"
-      - metrics_port = "9100"
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=9100
     <<: *logging
 
   cadvisor:
@@ -56,9 +56,9 @@ services:
     command:
       - --docker_only
     labels:
-      - metrics_scrape=true
-      - metrics_path = "/metrics"
-      - metrics_port = "8080"
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=8080
     <<: *logging
 
 volumes:
