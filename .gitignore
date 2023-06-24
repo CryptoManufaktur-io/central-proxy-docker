@@ -1,2 +1,2 @@
-.env
+.env*
 prometheus/custom-prom.yml
