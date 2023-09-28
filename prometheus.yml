@@ -64,5 +64,21 @@ services:
       - metrics.port=8080
     <<: *logging
 
+  promtail:
+    image: grafana/promtail:latest
+    user: root
+    volumes:
+      - /etc/machine-id:/etc/machine-id:ro
+      - ./promtail:/etc/promtail
+      - promtail-data:/tmp
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    entrypoint: ./etc/promtail/entrypoint.sh
+    command: ["/usr/bin/promtail"]
+    environment:
+      SERVER_LABEL_HOSTNAME: ${LOGS_LABEL:-notset}
+    restart: "unless-stopped"
+    <<: *logging
+
 volumes:
   prom-data:
+  promtail-data:

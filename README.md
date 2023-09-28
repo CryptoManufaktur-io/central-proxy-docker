@@ -1,6 +1,6 @@
 # Overview
 
-Repo containing Traefik and a Prometheus for remote write, intended for integration with Eth Docker patterned repos
+Repo containing Traefik and a Prometheus/promtail for remote write, intended for integration with Eth Docker patterned repos
 
 Prometheus looks for labels to know what to scrape. For example, to have Prometheus scrape metrics on port 6060 with
 path /metrics:
