@@ -12,6 +12,8 @@ labels:
   - metrics.port=6060
 ```
 
+Promtail can be used on its own with servers with their own prometheus thats why they are in separate file. Just add promtail.yml to COMPOSE_FILE in `.env`
+
 To work well with Eth Docker patterned repos, clone this repo into a directory named `traefik` and
 use `ext-network.yml` in the repos that are to interface with it.
 `git clone https://github.com/CryptoManufaktur-io/central-proxy-docker.git traefik`
