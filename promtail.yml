@@ -21,6 +21,10 @@ services:
     environment:
       SERVER_LABEL_HOSTNAME: ${LOGS_LABEL:-notset}
     restart: "unless-stopped"
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=9080
     <<: *logging
 
 volumes:
