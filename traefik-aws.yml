@@ -32,6 +32,7 @@ services:
       - --entrypoints.websecure.address=:${TRAEFIK_WEB_PORT}
       - --metrics
       - --metrics.prometheus
+      - --global.sendAnonymousUsage
     labels:
       - metrics.scrape=true
       - metrics.path=/metrics
