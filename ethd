@@ -452,6 +452,7 @@ envmigrate() {
     __during_migrate=0
 }
 
+
 upgrade() {
   update
 }
@@ -466,74 +467,40 @@ up() {
     start
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> template/main
 run() {
     start
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> template/main
 stop() {
     docompose down --remove-orphans "$@"
 }
 
-<<<<<<< HEAD
-=======
 
 # Passed by user
 # shellcheck disable=SC2120
->>>>>>> template/main
 down() {
     stop "$@"
 }
 
-<<<<<<< HEAD
-terminate() {
-    while true; do
-        read -rp "WARNING - this action will destroy all data stores for this Fantom node. Do you wish to continue? (No/Yes) " yn
-        case $yn in
-            [Yy]es ) break;;
-            * ) echo "Aborting, no changes made"; exit 1;;
-        esac
-    done
-
-    down
-    dodocker volume rm $(dodocker volume ls -q -f "name=^$(basename "$(realpath .)")_[^_]+")
-    echo ""
-    echo "All containers stopped and all volumes deleted"
-    echo ""
-}
-=======
->>>>>>> template/main
 
 restart() {
     stop "$@"
     start
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> template/main
 logs() {
     docompose logs "$@"
 }
 
-<<<<<<< HEAD
-=======
 
->>>>>>> template/main
 cmd() {
     docompose "$@"
 }
 
-<<<<<<< HEAD
-=======
+
 terminate() {
     if [ -z "$(dodocker volume ls -q -f "name=^$(basename "$(realpath .)")_[^_]+")" ]; then
         echo "There are no data stores - Docker volumes - left to remove for this ${__app_name}."
@@ -559,7 +526,6 @@ terminate() {
 }
 
 
->>>>>>> template/main
 set_value_in_env() {
     # Assumes that "var" has been set to the name of the variable to be changed
     if [ "${!var+x}" ]; then
@@ -571,7 +537,7 @@ set_value_in_env() {
     fi
 }
 
-<<<<<<< HEAD
+
 version() {
     # ethd version
     grep "^This is" README.md
@@ -591,27 +557,6 @@ version() {
     esac
 }
 
-printhelp() {
-    me=$(basename "${BASH_SOURCE[0]}")
-    echo "usage: ${me} [help|-h|--help] <subcommand>"
-    echo ""
-    echo "optional arguments:"
-    echo "  help | -h | --help"
-    echo "    print this message and exit"
-    echo ""
-    echo "subcommands:"
-    echo "  install"
-    echo "     attempts to install docker and docker-compose for you"
-    echo "  update "
-    echo "     updates all client versions and base-docker-environment itself"
-    echo "  up|start"
-    echo "     starts all containers, or restarts containers that had their image or"
-    echo "     configuration changed"
-    echo "  down|stop [service-name]"
-    echo "     stops all containers, or a specific service by name"
-    echo "  restart"
-    echo "     restarts all containers, a combination of down and up"
-=======
 
 handle_error() {
     if [[ ! $- =~ e ]]; then
@@ -639,21 +584,6 @@ handle_error() {
 }
 
 
-version() {
-    # script version
-    grep "^This is" README.md
-    echo ""
-    var="COMPOSE_FILE"
-    value=$(sed -n -e "s/^${var}=\(.*\)/\1/p" "${ENV_FILE}" || true)
-    # Client versions
-    case "${value}" in
-        *x.yml* )
-            docompose exec x-geth x-geth version
-            ;;&
-    esac
-}
-
-
 help() {
     echo "usage: ${__me} [-h|--help] <command>"
     echo
@@ -669,34 +599,11 @@ help() {
     echo "     stops the ${__app_name}, or a specific service by name"
     echo "  restart [service-name]"
     echo "     restarts the ${__app_name}, or a specific service by name, a combination of down and up"
->>>>>>> template/main
     echo "  version"
     echo "     prints the version(s) of currently running client(s)"
     echo "  logs"
     echo "     shows logs"
     echo "  cmd <command>"
-<<<<<<< HEAD
-    echo "     executes an arbitrary docker compose command. Use \"cmd help\" to list them"
-    echo "  terminate"
-    echo "     stops the all containers and destroys all data stores"
-    echo ""
-    echo ""
-    echo "The logs subcommand can be appended by flags and specify the container(s). example: "
-    echo ""
-    echo "  $me logs -f --tail 50 traefik"
-    echo "    shows logs only for traefik service"
-    echo ""
-    echo ""
-    echo "$me will attempt to use sudo as needed for docker commands"
-    echo ""
-    echo "✍️  Give feedback and report issues on GitHub:"
-    echo "  * https://github.com/CryptoManufaktur-io/base-docker-environment"
-    echo ""
-}
-
-if [[ "$#" -eq 0 || "$1" == "help" || "$1" == "-h" || "$1" == "--help" ]]; then
-    printhelp
-=======
     echo "     executes an arbitrary Docker Compose command. Use \"cmd help\" to list them"
     echo "  terminate"
     echo "     stops the ${__app_name} and destroys all data stores"
@@ -714,6 +621,7 @@ if [[ "$#" -eq 0 || "$1" == "help" || "$1" == "-h" || "$1" == "--help" ]]; then
     echo
 }
 
+
 # Main body from here
 ENV_FILE=.env
 __during_update=0
@@ -726,7 +634,6 @@ trap 'handle_error $? $LINENO' ERR
 
 if [[ "$#" -eq 0 || "$1" == "-h" || "$1" == "--help" ]]; then
     help
->>>>>>> template/main
     exit 0
 fi
 
@@ -741,28 +648,6 @@ else
 fi
 
 if [ "${OWNER}" == "root" ]; then
-<<<<<<< HEAD
-    echo "Please install base-docker-environment as a non-root user."
-    exit 1
-fi
-
-ENV_FILE=.env
-__during_update=0
-
-command="$1"
-shift
-
-determine_distro
-determine_sudo
-handle_root
-determine_docker
-determine_compose
-prep_prometheus
-
-if [ "$command" = "install" ]; then
-    $command "$@"
-    exit "$?"
-=======
     echo "Please install ${__project_name} as a non-root user."
     exit 0
 fi
@@ -773,6 +658,7 @@ __params=$*
 
 determine_distro
 handle_root
+prep_prometheus
 
 if [ "$__command" = "install" ]; then
     $__command "$@"
@@ -792,7 +678,6 @@ if [ "${__old_compose}" -eq 1 ]; then
   echo "You can remove the old docker-compose:"
   echo "\"sudo apt-mark manual docker.io && sudo apt --autoremove remove docker-compose\"."
   exit 0
->>>>>>> template/main
 fi
 
 if ! dodocker images >/dev/null 2>&1; then
@@ -805,14 +690,6 @@ if ! docompose --help >/dev/null 2>&1; then
     exit 1
 fi
 
-<<<<<<< HEAD
-$command "$@"
-
-__result=$?
-if [ "$__result" -eq 127 ]; then
-    printhelp
-fi
-=======
 case "$__command" in
     help|update|up|start|down|stop|restart|version|logs|cmd|terminate)
         $__command "$@";;
@@ -821,27 +698,11 @@ case "$__command" in
         help
         ;;
 esac
->>>>>>> template/main
 
 check_disk_space
 
 if [ "${__compose_upgraded}" -eq 1 ]; then
   echo
-<<<<<<< HEAD
-  echo "You updated compose to V2."
-  echo "The \"docker-compose\" command is gone and replaced with \"docker compose\"."
-  echo "You can create yourself an alias for \"docker-compose\"."
-  echo
-  echo "Optionally, you can switch to docker-ce."
-  echo "Please see https://eth-docker.net/Usage/Prerequisites#switching-from-dockerio-to-docker-ce for instructions."
-elif [ "${__old_compose}" -eq 1 ]; then
-  echo
-  echo "You are using docker-compose ${__compose_version}, which is unsupported by Docker, Inc. from July 2023 on."
-  echo "eth-docker will stop supporting it with Dencun, sometime fall 2023."
-  echo ""
-  echo "A switch to docker-ce is recommended. It is *not* mandatory. This is unfortunately a manual step that eth-docker cannot do for you."
-  echo "Please see https://eth-docker.net/Usage/Prerequisites#switching-from-dockerio-to-docker-ce for instructions."
-=======
   echo "You updated Docker Compose to V2."
   echo "The \"docker-compose\" command is gone and replaced with \"docker compose\"."
   echo
@@ -850,5 +711,4 @@ elif [ "${__old_compose}" -eq 1 ]; then
   echo
   echo "Optionally, you can switch to docker-ce."
   echo "Please see https://ethdocker.com/Usage/Prerequisites#switching-from-dockerio-to-docker-ce for instructions."
->>>>>>> template/main
 fi
