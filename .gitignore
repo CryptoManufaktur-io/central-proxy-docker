@@ -1,2 +1,3 @@
 .env*
 prometheus/custom-prom.yml
+*swp
