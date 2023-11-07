@@ -285,17 +285,11 @@ check_disk_space() {
 
 # Literal match intended
 # shellcheck disable=SC2076
-    if [[ "${__free_space}" -lt 52428800 ]]; then
+    if [[ "${__free_space}" -lt 1048576 ]]; then
         echo
-        echo "You have less than 50 GiB of free disk space:"
+        echo "You have less than 1 GiB of free disk space:"
         echo
         df -h "${__docker_dir}"
-        echo
-        echo "Pruning does not appear an option for your client mix."
-        echo "A resync may help."
-        echo
-        echo "If total space is less than 1.5 TiB, consider cloning to a larger drive."
-        echo
     fi
 }
 
