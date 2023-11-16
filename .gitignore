@@ -1,3 +1,4 @@
 .env*
 prometheus/custom-prom.yml
+promtail/custom-lokiurl.yml
 *swp
