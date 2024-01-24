@@ -15,6 +15,7 @@ services:
       - ./promtail:/etc/promtail
       - promtail-data:/tmp
       - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - ${EXTRA_LOGS_MOUNT_PATH:-/dev/null}:${EXTRA_LOGS_MOUNT_PATH:-/dev/null}:ro
     entrypoint: ./etc/promtail/entrypoint.sh
     command: ["/usr/bin/promtail"]
     environment:
