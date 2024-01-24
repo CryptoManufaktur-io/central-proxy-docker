@@ -1,0 +1,17 @@
+- job_name: system # Can be changed to match the job_name
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: varlogs # Can be changed
+      server: SERVER_LABEL_HOSTNAME # Will be replaced with env variable LOGS_LABEL value
+      __path__: /var/log/system.log # Path to log file for example
+
+  pipeline_stages:
+  - regex:
+      expression: '^(?P<filepath>.*?/)?(?P<filename>[^/]+)\.log$'
+      source: filename
+  
+  - labels:
+      filename:
+      filepath:

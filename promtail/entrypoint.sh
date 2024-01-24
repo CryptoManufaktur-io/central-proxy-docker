@@ -12,6 +12,11 @@ cat >> /promtail-config.yml << EOF
 EOF
 fi
 
+# Add extra log jobs if present and not empty
+if [ -s "/etc/promtail/extra-log-jobs.yml" ]; then
+  sed -i '/#MORE_JOBS_HERE/r /etc/promtail/extra-log-jobs.yml' /promtail-config.yml
+fi
+
 # Replace SERVER_LABEL_HOSTNAME in config file
 sed -i "s/SERVER_LABEL_HOSTNAME/$SERVER_LABEL_HOSTNAME/" "/promtail-config.yml"
 exec "$@" --config.file=/promtail-config.yml

@@ -46,4 +46,6 @@ scrape_configs:
   - output:
       source: output
 
+#MORE_JOBS_HERE
+
 clients:
