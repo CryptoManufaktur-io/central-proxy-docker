@@ -472,7 +472,10 @@ envmigrate() {
     for var in "${ALL_VARS[@]}"; do
         value=$(sed -n -e "s/^${var}=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
         if [ -n "${value}" ]; then
-            sed -i'.original' -e "s~^\(${var}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
+          if [[ "${var}" = "DDNS_TAG" && "${__source_ver}" -eq "1" ]]; then # Switch to ddns-updater
+            value="v2"
+          fi
+          sed -i'.original' -e "s~^\(${var}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
         else # empty value
           if [ "${var}" = "CF_ZONE_ID" ]; then
             __lookup_cf_zone
@@ -487,9 +490,6 @@ envmigrate() {
         var=${OLD_VARS[index]}
         value=$(sed -n -e "s/^${var}=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
         if [ -n "${value}" ]; then
-          if [[ "${var}" = "DDNS_TAG" && "${__source_ver}" -eq "1" ]]; then # Switch to ddns-updater
-            value="v2"
-          fi
           sed -i'.original' -e "s~^\(${NEW_VARS[index]}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
         fi
     done
