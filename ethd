@@ -403,6 +403,47 @@ find the original contents in ${ENV_FILE}.bak."
     __during_update=0
 }
 
+
+__lookup_cf_zone() { # Migrates traefik-cf setup to use Zone ID
+  __compose_ymls=$(sed -n -e "s/^COMPOSE_FILE=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
+  __dns_token=$(sed -n -e "s/^CF_DNS_API_TOKEN=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
+  __zone_token=$(sed -n -e "s/^CF_ZONE_API_TOKEN=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
+  __domain=$(sed -n -e "s/^DOMAIN=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
+  if [[ ! $__compose_ymls =~ traefik-cf.yml ]]; then
+    value=""
+    return
+  elif [[ -n $__dns_token ]]; then
+    if [[ -n $__zone_token ]]; then
+      __token=$__zone_token
+    else
+      __token=$__dns_token
+    fi
+    set +e
+    value=$(docompose run --rm curl-jq sh -c \
+      "curl -s \"https://api.cloudflare.com/client/v4/zones?name=${__domain}\" -H \"Authorization: Bearer ${__token}\" \
+      -H \"Content-Type: application/json\" | jq -r '.result[0].id'" | tail -n 1)
+    __code=$?
+    if [[ "$__code" -ne 0 ]]; then
+      value=""
+      return
+    fi
+    __success=$(docompose run --rm curl-jq sh -c \
+      "curl -s \"https://api.cloudflare.com/client/v4/zones?name=${__domain}\" -H \"Authorization: Bearer ${__token}\" \
+      -H \"Content-Type: application/json\" | jq -r '.success'" | tail -n 1)
+    set -e
+    if [ "${__success}" = "true" ]; then
+      return
+    else
+      value=""
+      return
+    fi
+  else
+    value=""
+    return
+  fi
+}
+
+
 envmigrate() {
     if [ ! -f "./${ENV_FILE}" ]; then
         return
@@ -430,8 +471,15 @@ envmigrate() {
     # Migrate over user settings
     for var in "${ALL_VARS[@]}"; do
         value=$(sed -n -e "s/^${var}=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
-        if [ -n "${value}" ] || [ "${var}" = "SNAPSHOT" ]; then
+        if [ -n "${value}" ]; then
             sed -i'.original' -e "s~^\(${var}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
+        else # empty value
+          if [ "${var}" = "CF_ZONE_ID" ]; then
+            __lookup_cf_zone
+            if [ -n "${value}" ]; then
+              sed -i'.original' -e "s~^\(${var}\s*=\s*\).*\$~\1${value//&/\\&}~" "${ENV_FILE}"
+            fi
+          fi
         fi
     done
     # Move value from old variable name(s) to new one(s)
@@ -439,7 +487,10 @@ envmigrate() {
         var=${OLD_VARS[index]}
         value=$(sed -n -e "s/^${var}=\(.*\)/\1/p" "${ENV_FILE}.source" || true)
         if [ -n "${value}" ]; then
-            sed -i'.original' -e "s~^\(${NEW_VARS[index]}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
+          if [[ "${var}" = "DDNS_TAG" && "${__source_ver}" -eq "1" ]]; then # Switch to ddns-updater
+            value="v2"
+          fi
+          sed -i'.original' -e "s~^\(${NEW_VARS[index]}\s*=\s*\).*$~\1${value}~" "${ENV_FILE}"
         fi
     done
     rm "${ENV_FILE}".original
