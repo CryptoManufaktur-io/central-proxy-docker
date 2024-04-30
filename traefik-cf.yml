@@ -30,6 +30,7 @@ services:
       - --metrics
       - --metrics.prometheus
       - --global.sendAnonymousUsage
+      - --api.insecure=${TRAEFIK_INSECURE_API:-false}
     ports:
       - ${HOST_IP:-}${TRAEFIK_WEB_PORT}:${TRAEFIK_WEB_PORT}/tcp
       - ${HOST_IP:-}${TRAEFIK_WEB_HTTP_PORT}:${TRAEFIK_WEB_HTTP_PORT}/tcp
