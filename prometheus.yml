@@ -12,7 +12,7 @@ services:
     build:
       context: ./prometheus
     image: prometheus:vd-local
-    pull_policy: build
+    pull_policy: never
     user: root
     volumes:
       - prom-data:/prometheus

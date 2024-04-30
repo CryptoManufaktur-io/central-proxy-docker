@@ -9,7 +9,7 @@ x-logging: &logging
 services:
   traefik:
     image: traefik-aws
-    pull_policy: build
+    pull_policy: never
     build:
       context: ./traefik
       args:
