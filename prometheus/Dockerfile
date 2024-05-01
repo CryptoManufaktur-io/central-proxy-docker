@@ -1,6 +1,6 @@
 FROM ubuntu/prometheus
 
-RUN apt-get update && apt-get install  -y bash tzdata
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y bash tzdata
 COPY ./global-prom.yml /etc/prometheus/
 COPY ./choose-config.sh /usr/local/bin/choose-config.sh
 
