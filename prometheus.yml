@@ -65,5 +65,16 @@ services:
       - metrics.port=8080
     <<: *logging
 
+  cmf_docker_metrics:
+    image: ghcr.io/cryptomanufaktur-io/cmf-docker-metrics:main
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=9090
+    <<: *logging
+
 volumes:
   prom-data:
