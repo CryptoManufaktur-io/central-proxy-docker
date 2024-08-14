@@ -42,8 +42,8 @@ services:
       - metrics.path=/metrics
       - metrics.port=8080
     ports:
-      - ${HOST_IP:-}${TRAEFIK_WEB_PORT}:${TRAEFIK_WEB_PORT}/tcp
-      - ${HOST_IP:-}${TRAEFIK_WEB_HTTP_PORT}:${TRAEFIK_WEB_HTTP_PORT}/tcp
+      - ${HOST_IP:-}:${TRAEFIK_WEB_PORT}:${TRAEFIK_WEB_PORT}/tcp
+      - ${HOST_IP:-}:${TRAEFIK_WEB_HTTP_PORT}:${TRAEFIK_WEB_HTTP_PORT}/tcp
     environment:
       - AWS_PROFILE=${AWS_PROFILE}
       - AWS_HOSTED_ZONE_ID=${AWS_HOSTED_ZONE_ID}
@@ -57,3 +57,7 @@ services:
 
 volumes:
   certs:
+
+networks:
+  default:
+    enable_ipv6: ${IPV6:-false}
