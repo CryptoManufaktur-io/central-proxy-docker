@@ -37,7 +37,7 @@ services:
     pid: host
     restart: unless-stopped
     volumes:
-      - '/:/host:ro,rslave'
+      - /:/host:ro,rslave
       - /etc/hostname:/etc/nodename:ro
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -53,10 +53,10 @@ services:
     image: gcr.io/cadvisor/cadvisor:v0.49.1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /:/rootfs:ro
+      - /:/rootfs:ro,rslave
       - /var/run:/var/run
       - /sys:/sys:ro
-      - /var/lib/docker:/var/lib/docker:ro
+      - /var/lib/docker:/var/lib/docker:ro,rslave
     command:
       - --docker_only
     labels:

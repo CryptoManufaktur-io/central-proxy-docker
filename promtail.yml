@@ -14,7 +14,7 @@ services:
       - /etc/machine-id:/etc/machine-id:ro
       - ./promtail:/etc/promtail
       - promtail-data:/tmp
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro,rslave
       - ${EXTRA_LOGS_MOUNT_PATH:-/dev/null}:${EXTRA_LOGS_MOUNT_PATH:-/dev/null}:ro
     entrypoint: ./etc/promtail/entrypoint.sh
     command: ["/usr/bin/promtail"]
