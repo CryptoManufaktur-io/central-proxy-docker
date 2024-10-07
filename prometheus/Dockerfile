@@ -4,6 +4,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install 
 COPY ./global-prom.yml /etc/prometheus/
 COPY ./choose-config.sh /usr/local/bin/choose-config.sh
 
-ENTRYPOINT choose-config.sh
+ENTRYPOINT ["choose-config.sh"]
 
 CMD ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles"]
