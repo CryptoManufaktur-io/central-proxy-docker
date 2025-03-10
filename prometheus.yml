@@ -34,6 +34,7 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)'
       - '--no-collector.ipvs'
+      - '--collector.textfile.directory=/collector_textfile_directory/'
     pid: host
     restart: unless-stopped
     volumes:
@@ -42,6 +43,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /etc/localtime:/etc/localtime:ro
+      - ${NODE_EXPORTER_COLLECTOR_MOUNT_PATH:-/dev/null}:/collector_textfile_directory:ro
     labels:
       - metrics.scrape=true
       - metrics.path=/metrics
