@@ -1,5 +1,8 @@
 .env*
+*.swp
+*.bak
+*.original
+custom.yml
 prometheus/custom-prom.yml
 promtail/custom-lokiurl.yml
 promtail/extra-log-jobs.yml
-*swp
