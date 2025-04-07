@@ -11,7 +11,7 @@
   - regex:
       expression: '^(?P<filepath>.*?/)?(?P<filename>[^/]+)\.log$'
       source: filename
-  
+
   - labels:
       filename:
       filepath:
