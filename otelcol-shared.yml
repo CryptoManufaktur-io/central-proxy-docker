@@ -1,0 +1,5 @@
+# To be used with otelcol.yml. Using a common Docker bridge network instead is preferred
+services:
+  otel-collector:
+    ports:
+      4317:4317/tcp
