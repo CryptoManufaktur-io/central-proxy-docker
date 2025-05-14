@@ -1,0 +1,19 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector:latest
+    volumes:
+      - ./otelcol:/etc/otelcol
+    restart: "unless-stopped"
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=8888
+    <<: *logging
