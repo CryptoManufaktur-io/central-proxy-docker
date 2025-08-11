@@ -67,6 +67,7 @@ services:
       - AWS_HOSTED_ZONE_ID=${HOSTED_ZONE_ID}
       - A_RECORD_NAME=${DOMAIN}
       - CNAME_LIST=${CNAME_LIST:-}
+      - TTL=${TTL:-300}
     volumes:
       - ~/.aws:/root/.aws:ro
     <<: *logging
