@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger("dns-updater")
 
 # Load environment variables
-HOSTED_ZONE_ID = os.environ["HOSTED_ZONE_ID"]
+HOSTED_ZONE_ID = os.environ["AWS_HOSTED_ZONE_ID"]
 A_RECORD_NAME = os.environ["A_RECORD_NAME"]
 CNAME_LIST = os.getenv("CNAME_LIST", "")
 TTL = int(os.getenv("TTL", 300))

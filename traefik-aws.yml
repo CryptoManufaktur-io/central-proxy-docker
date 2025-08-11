@@ -65,7 +65,7 @@ services:
       - AWS_PROFILE=${AWS_PROFILE:-}
       - AWS_REGION=${AWS_REGION:-us-east-1}
       - AWS_HOSTED_ZONE_ID=${HOSTED_ZONE_ID}
-      - A_RECORD_NAME=${DOMAIN}
+      - A_RECORD_NAME=${DDNS_SUBDOMAIN}.${DOMAIN}
       - CNAME_LIST=${CNAME_LIST:-}
       - TTL=${TTL:-300}
     volumes:
