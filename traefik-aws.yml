@@ -54,6 +54,7 @@ services:
 
   dns:
     image: dns-aws
+    pull_policy: never
     build:
       context: ./dns
       args:
