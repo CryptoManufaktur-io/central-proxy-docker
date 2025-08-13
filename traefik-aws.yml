@@ -54,17 +54,18 @@ services:
 
   dns:
     image: dns-aws
+    pull_policy: never
     build:
       context: ./dns
       args:
-        - DOCKER_TAG=${PYTHON_DNS_TAG:-latest}
+        - DOCKER_TAG=${PYTHON_DNS_TAG}
     restart: "unless-stopped"
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_PROFILE=${AWS_PROFILE:-}
       - AWS_REGION=${AWS_REGION:-us-east-1}
-      - AWS_HOSTED_ZONE_ID=${HOSTED_ZONE_ID}
+      - AWS_HOSTED_ZONE_ID=${AWS_HOSTED_ZONE_ID}
       - A_RECORD_NAME=${DDNS_SUBDOMAIN}.${DOMAIN}
       - CNAME_LIST=${CNAME_LIST:-}
       - TTL=${TTL:-300}
