@@ -6,9 +6,15 @@ import requests
 from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 import boto3
 from botocore.exceptions import ClientError
+import sys
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("dns-updater")
+if not logger.handlers:
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate = False  # Prevent propagation to root logger
 
 # Load environment variables
 HOSTED_ZONE_ID = os.environ["AWS_HOSTED_ZONE_ID"]
@@ -22,18 +28,32 @@ SLEEP = int(os.getenv("SLEEP", 300))
 CNAME_TARGETS = [c.strip() for c in CNAME_LIST.split(",") if c.strip()]
 
 def check_credentials():
-    env_creds = os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY")
+    aws_access_key = os.getenv("AWS_ACCESS_KEY_ID")
+    aws_secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+    env_creds = aws_access_key and aws_secret_key
+
     profile = os.getenv("AWS_PROFILE")
     credentials_path = "/root/.aws/credentials"
 
+    # 1. Use env vars if both are present
     if env_creds:
         logger.info("Using AWS credentials from environment variables.")
-    elif profile and os.path.exists(credentials_path):
+        os.unsetenv("AWS_PROFILE")
+        os.environ.pop("AWS_PROFILE", None)
+        return
+
+    # 2. Use profile only if it's not None and not empty/whitespace
+    if profile and profile.strip() and os.path.exists(credentials_path):
         logger.info(f"Using AWS profile '{profile}' from {credentials_path}")
-    elif os.path.exists(credentials_path):
+        return
+
+    # 3. If profile is missing/empty but credentials file exists, use default
+    if os.path.exists(credentials_path):
         logger.info(f"Using default AWS profile from {credentials_path}")
-    else:
-        raise RuntimeError("No valid AWS credentials found (env vars or ~/.aws/credentials)")
+        return
+
+    # 4. Nothing found
+    raise RuntimeError("No valid AWS credentials found (env vars or ~/.aws/credentials)")
 
 check_credentials()
 session = boto3.session.Session()
@@ -123,8 +143,32 @@ def upsert_record(name, rtype, value):
     except ClientError as e:
         logger.error(f"Failed to upsert {rtype} record {name}: {e}")
 
+def build_cname_fqdn(label_or_name: str, domain: str) -> str:
+    """
+    - 'api' -> 'api.<domain>.'
+    - 'api.example.com' -> 'api.example.com.'
+    - 'api.example.com.' -> 'api.example.com.'
+    - '<domain>' or '<domain>.' -> '<domain>.'
+    Always returns a trailing-dot FQDN.
+    """
+    n = label_or_name.strip().rstrip(".")
+    d = domain.strip().rstrip(".")
+    if not n:
+        raise ValueError("Empty CNAME entry")
+
+    # Already fully-qualified for this domain
+    if n == d or n.endswith("." + d):
+        return n + "."
+
+    # Some other absolute name (contains a dot), just normalize trailing dot
+    if "." in n:
+        return n + "."
+
+    # Short label: expand with domain
+    return f"{n}.{d}."
 
 def run():
+    DOMAIN = ".".join(A_RECORD_NAME.split(".")[1:])
     while True:
         try:
             ip = get_external_ip()
@@ -136,7 +180,7 @@ def run():
                 logger.info(f"A record {fqdn} already up-to-date with IP {ip}")
 
             for cname in CNAME_TARGETS:
-                cname_fqdn = cname if cname.endswith('.') else cname + '.'
+                cname_fqdn = build_cname_fqdn(cname, DOMAIN)
                 if not record_exists(cname_fqdn, "CNAME", fqdn):
                     upsert_record(cname_fqdn, "CNAME", fqdn)
                 else:
