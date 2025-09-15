@@ -8,23 +8,34 @@ x-logging: &logging
 
 services:
   prometheus:
-    restart: unless-stopped
+    restart: "unless-stopped"
     build:
       context: ./prometheus
     image: prometheus:vd-local
-    pull_policy: never
     user: root
+    pull_policy: never
     volumes:
       - prom-data:/prometheus
       - /etc/localtime:/etc/localtime:ro
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./prometheus/conf.d/:/etc/prometheus/conf.d/:ro
       - ./prometheus/custom-prom.yml:/etc/prometheus/custom-prom.yml:ro
-    entrypoint: choose-config.sh
-    command: ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles", "--log.level=${LOG_LEVEL:-info}"]
+    command:
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=40d
+      - --web.console.libraries=/usr/share/prometheus/console_libraries
+      - --web.console.templates=/usr/share/prometheus/consoles
+      - --log.level=${LOG_LEVEL:-info}
     <<: *logging
     depends_on:
       - node-exporter
       - cadvisor
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=9090
+      - metrics.instance=prometheus
+      - metrics.network=all
 
   node-exporter:
     image: quay.io/prometheus/node-exporter:latest
