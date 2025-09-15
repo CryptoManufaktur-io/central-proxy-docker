@@ -31,12 +31,14 @@ scrape_configs:
         target_label: job
       - source_labels: [__meta_docker_container_label_com_docker_compose_project]
         target_label: project
-      - action: replace  # Optional: override metrics_path using metrics.path (default is /metrics)
+      # Optional: override metrics_path using metrics.path (default is /metrics)
+      - action: replace
         regex: (.+)
         source_labels:
           - __meta_docker_container_label_metrics_path
         target_label: __metrics_path__
-      - action: replace  # Required: Configure the HTTP host and port to scrape using metrics.port
+      # Required: Configure the HTTP host and port to scrape using metrics.port
+      - action: replace
         regex: ([^:]+)(?::\d+)?;(\d+)
         replacement: $1:$2
         source_labels:
@@ -49,12 +51,14 @@ scrape_configs:
         source_labels:
           - __meta_docker_container_label_metrics_job
         target_label: job
-      - action: replace  # Optional: override the global scrape interval using metrics.interval
+      # Optional: override the global scrape interval using metrics.interval
+      - action: replace
         regex: (.+)
         source_labels:
           - __meta_docker_container_label_metrics_interval
         target_label: __scrape_interval__
-      - action: replace  # Optional: Sets Prometheus 'instance' label using metrics.instance, otherwise uses IP:PORT
+      # Optional: Sets Prometheus 'instance' label using metrics.instance, otherwise uses IP:PORT
+      - action: replace
         regex: (.+)
         source_labels:
           - __meta_docker_container_label_metrics_instance
