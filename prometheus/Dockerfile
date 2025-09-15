@@ -1,9 +1,23 @@
-FROM ubuntu/prometheus
+# hadolint global ignore=DL3007,DL3008,DL3059
+ARG YQ_TAG=4
+ARG YQ_REPO=mikefarah/yq
+FROM $YQ_REPO:$YQ_TAG AS yq
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get install -y bash tzdata
-COPY ./global-prom.yml /etc/prometheus/
-COPY ./choose-config.sh /usr/local/bin/choose-config.sh
+FROM prom/prometheus:latest
 
-ENTRYPOINT ["choose-config.sh"]
+ARG USER=nobody
 
-CMD ["/bin/prometheus", "--storage.tsdb.path=/prometheus", "--web.console.libraries=/usr/share/prometheus/console_libraries", "--web.console.templates=/usr/share/prometheus/consoles"]
+COPY --from=yq /usr/bin/yq /usr/local/bin/yq
+
+COPY base-config.yml /etc/prometheus/
+COPY ./docker-entrypoint.sh /usr/local/bin/
+
+# Belt and suspenders
+USER root
+RUN chmod -R 755 /usr/local/bin/*
+RUN find /etc/prometheus -type d -exec chmod 755 {} \;
+RUN find /etc/prometheus -type f -exec chmod 664 {} \;
+RUN chown -R ${USER}:${USER} /etc/prometheus
+USER ${USER}
+
+ENTRYPOINT [ "docker-entrypoint.sh" ]

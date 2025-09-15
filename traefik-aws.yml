@@ -53,7 +53,7 @@ services:
     <<: *logging
 
   ddns:
-    image: ddns-aws
+    image: ddns-aws:local
     pull_policy: never
     build:
       context: ./traefik-utils
