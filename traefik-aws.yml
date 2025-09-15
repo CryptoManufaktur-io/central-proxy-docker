@@ -11,11 +11,11 @@ services:
     image: traefik:${TRAEFIK_TAG}
     restart: "unless-stopped"
     command:
-#      - --accesslog=true
-#      - --accesslog.format=json
-#      - --accesslog.fields.defaultmode=keep
-#      - --accesslog.fields.headers.defaultmode=keep
-#      - --certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      # - --accesslog=true
+      # - --accesslog.format=json
+      # - --accesslog.fields.defaultmode=keep
+      # - --accesslog.fields.headers.defaultmode=keep
+      # - --certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
       - --log.level=${LOG_LEVEL:-info}
       - --providers.file.directory=/configs
       - --providers.file.watch=true
@@ -48,15 +48,15 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - certs:/letsencrypt
       - ~/.aws:/root/.aws:ro
-      - ./traefik/configs:/configs:ro
+      - ./traefik-utils/configs:/configs:ro
       - /etc/localtime:/etc/localtime:ro
     <<: *logging
 
-  dns:
-    image: dns-aws
+  ddns:
+    image: ddns-aws
     pull_policy: never
     build:
-      context: ./dns
+      context: ./traefik-utils
       args:
         - DOCKER_TAG=${PYTHON_DNS_TAG}
     restart: "unless-stopped"
