@@ -69,6 +69,7 @@ services:
       - A_RECORD_NAME=${DDNS_SUBDOMAIN}.${DOMAIN}
       - CNAME_LIST=${CNAME_LIST:-}
       - TTL=${TTL:-300}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
     volumes:
       - ~/.aws:/root/.aws:ro
     <<: *logging
