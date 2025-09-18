@@ -36,35 +36,41 @@ exporter_status = Gauge(
 )
 
 
-def get_largest_device():
+def get_largest_devices(num_devices=2):
     try:
-        # Run df -h and get the device with the largest size
+        # Run df -h and get the devices with the largest sizes
         output = subprocess.check_output(["df", "-h"], stderr=subprocess.STDOUT).decode(
             "utf-8"
         )
         lines = output.strip().split("\n")[1:]  # skip header
 
-        max_size = 0
-        max_device = None
+        devices = []
 
         for line in lines:
             parts = re.split(r"\s+", line)
-            if len(parts) < 2:
+            if len(parts) < 6:
                 continue
             device, size = parts[0], parts[1]
-            if not device.startswith("/dev/"):
+            mount_point = parts[5]
+            if not device.startswith("/dev/") or mount_point in ['/boot', '/boot/efi']:
                 continue
             # Remove 'G', 'T', etc., and convert to GiB
             size_gib = convert_to_gib(size)
-            if size_gib > max_size:
-                max_size = size_gib
-                max_device = device
+            devices.append((size_gib, mount_point, device))
 
-        return max_device if max_device else "/dev/vda"
+        # Sort by size (largest first) and take top num_devices
+        devices.sort(reverse=True, key=lambda x: x[0])
+
+        if not devices:
+            return [("/tmp", "/dev/vda")]  # fallback
+
+        # Return list of (mount_point, device) tuples
+        result = [(mount_point, device) for _, mount_point, device in devices[:num_devices]]
+        return result
 
     except subprocess.CalledProcessError as e:
         print("Failed to run df -h:", e.output.decode())
-        return "/dev/vda"  # fallback
+        return [("/tmp", "/dev/vda")]  # fallback
 
 
 def convert_to_gib(size_str):
@@ -83,12 +89,12 @@ def convert_to_gib(size_str):
         return 0
 
 
-def run_ioping(device, count):
+def run_ioping(mount_point, device, count):
     try:
-        logging.info(f"Running ioping on {device} with {count} requests")
+        logging.info(f"Running ioping on mount point {mount_point} (device: {device}) with {count} requests")
         exporter_status.labels(device=device).set(1)  # running
 
-        cmd = ["ioping", "-D", "-c", str(count), device]
+        cmd = ["ioping", "-D", "-c", str(count), mount_point]
         output = subprocess.check_output(cmd, stderr=subprocess.STDOUT).decode("utf-8")
         logging.debug(f"Raw ioping output:\n{output}")
 
@@ -127,10 +133,10 @@ def run_ioping(device, count):
         exporter_status.labels(device=device).set(2)  # success
 
     except subprocess.CalledProcessError as e:
-        logging.error(f"ioping failed on {device}: {e.output.decode().strip()}")
+        logging.error(f"ioping failed on mount point {mount_point} (device {device}): {e.output.decode().strip()}")
         exporter_status.labels(device=device).set(3)
     except Exception as ex:
-        logging.exception(f"Unexpected error while running ioping on {device}: {ex}")
+        logging.exception(f"Unexpected error while running ioping on {mount_point} (device {device}): {ex}")
         exporter_status.labels(device=device).set(3)
 
 
@@ -145,16 +151,26 @@ if __name__ == "__main__":
     parser.add_argument(
         "--count", type=int, default=30, help="Number of ioping requests per run"
     )
+    parser.add_argument(
+        "--num-devices",
+        type=int,
+        default=2,
+        help="Number of largest devices to monitor (default: 2)"
+    )
     args = parser.parse_args()
 
-    device = get_largest_device()
+    devices = get_largest_devices(args.num_devices)
+    device_info = ", ".join([f"{mp} ({dev})" for mp, dev in devices])
     print(
-        f"Starting ioping exporter using device {device}, interval {args.interval_seconds}s..."
+        f"Starting ioping exporter monitoring {len(devices)} devices: {device_info}, interval {args.interval_seconds}s..."
     )
 
     start_http_server(8000)
 
     while True:
-        run_ioping(device, args.count)
+        for mount_point, device in devices:
+            run_ioping(mount_point, device, args.count)
         time.sleep(args.interval_seconds)
-        exporter_status.labels(device=device).set(0)
+        # Set status to idle for all monitored devices
+        for _, device in devices:
+            exporter_status.labels(device=device).set(0)
