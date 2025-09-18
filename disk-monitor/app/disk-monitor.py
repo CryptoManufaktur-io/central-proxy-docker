@@ -35,6 +35,7 @@ exporter_status = Gauge(
     "ioping_exporter_status", "Status of the ioping exporter", ["device"]
 )
 
+
 def get_largest_device():
     try:
         # Run df -h and get the device with the largest size
@@ -131,6 +132,7 @@ def run_ioping(device, count):
     except Exception as ex:
         logging.exception(f"Unexpected error while running ioping on {device}: {ex}")
         exporter_status.labels(device=device).set(3)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ioping Prometheus exporter")
