@@ -13,7 +13,7 @@ services:
     build:
       context: ./disk-monitor
       args:
-        DOCKER_TAG: ${PYTHON_IOPING_TAG:-3.12-slim}
+        DOCKER_TAG: ${PYTHON_IOPING_TAG:-3.13-slim}
     restart: unless-stopped
     <<: *logging
 
