@@ -8,30 +8,46 @@ import logging
 
 from prometheus_client import start_http_server, Gauge
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] %(levelname)s: %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s"
+)
 
 # Define Prometheus metrics with 'device' label
-latency_min = Gauge("ioping_latency_min_us", "Minimum latency in microseconds", ['device'])
-latency_avg = Gauge("ioping_latency_avg_us", "Average latency in microseconds", ['device'])
-latency_max = Gauge("ioping_latency_max_us", "Maximum latency in microseconds", ['device'])
-latency_mdev = Gauge("ioping_latency_mdev_us", "Latency standard deviation in microseconds", ['device'])
+latency_min = Gauge(
+    "ioping_latency_min_us", "Minimum latency in microseconds", ["device"]
+)
+latency_avg = Gauge(
+    "ioping_latency_avg_us", "Average latency in microseconds", ["device"]
+)
+latency_max = Gauge(
+    "ioping_latency_max_us", "Maximum latency in microseconds", ["device"]
+)
+latency_mdev = Gauge(
+    "ioping_latency_mdev_us", "Latency standard deviation in microseconds", ["device"]
+)
 
-iops_active = Gauge("ioping_iops_active", "Active IOPS during measurement", ['device'])
-iops_sustained = Gauge("ioping_iops_sustained", "Sustained IOPS over full run", ['device'])
+iops_active = Gauge("ioping_iops_active", "Active IOPS during measurement", ["device"])
+iops_sustained = Gauge(
+    "ioping_iops_sustained", "Sustained IOPS over full run", ["device"]
+)
 
-exporter_status = Gauge("ioping_exporter_status", "Status of the ioping exporter", ['device'])
+exporter_status = Gauge(
+    "ioping_exporter_status", "Status of the ioping exporter", ["device"]
+)
 
 def get_largest_device():
     try:
         # Run df -h and get the device with the largest size
-        output = subprocess.check_output(["df", "-h"], stderr=subprocess.STDOUT).decode("utf-8")
-        lines = output.strip().split('\n')[1:]  # skip header
+        output = subprocess.check_output(["df", "-h"], stderr=subprocess.STDOUT).decode(
+            "utf-8"
+        )
+        lines = output.strip().split("\n")[1:]  # skip header
 
         max_size = 0
         max_device = None
 
         for line in lines:
-            parts = re.split(r'\s+', line)
+            parts = re.split(r"\s+", line)
             if len(parts) < 2:
                 continue
             device, size = parts[0], parts[1]
@@ -49,20 +65,22 @@ def get_largest_device():
         print("Failed to run df -h:", e.output.decode())
         return "/dev/vda"  # fallback
 
+
 def convert_to_gib(size_str):
     try:
-        if size_str.endswith('T'):
+        if size_str.endswith("T"):
             return float(size_str[:-1]) * 1024
-        elif size_str.endswith('G'):
+        elif size_str.endswith("G"):
             return float(size_str[:-1])
-        elif size_str.endswith('M'):
+        elif size_str.endswith("M"):
             return float(size_str[:-1]) / 1024
-        elif size_str.endswith('K'):
+        elif size_str.endswith("K"):
             return float(size_str[:-1]) / 1024 / 1024
         else:
             return float(size_str)
     except Exception:
         return 0
+
 
 def run_ioping(device, count):
     try:
@@ -80,14 +98,16 @@ def run_ioping(device, count):
         # Parse latency stats
         match_latency = re.search(
             r"min/avg/max/mdev = ([\d.]+) us / ([\d.]+) us / ([\d.]+) us / ([\d.]+) us",
-            output
+            output,
         )
         if match_latency:
             latency_min.labels(device=used_device).set(float(match_latency.group(1)))
             latency_avg.labels(device=used_device).set(float(match_latency.group(2)))
             latency_max.labels(device=used_device).set(float(match_latency.group(3)))
             latency_mdev.labels(device=used_device).set(float(match_latency.group(4)))
-            logging.info(f"Latency stats (us): min={match_latency.group(1)}, avg={match_latency.group(2)}, max={match_latency.group(3)}, mdev={match_latency.group(4)}")
+            logging.info(
+                f"Latency stats (us): min={match_latency.group(1)}, avg={match_latency.group(2)}, max={match_latency.group(3)}, mdev={match_latency.group(4)}"
+            )
 
         # Active IOPS
         match_active_iops = re.search(r"([\d.]+) k iops", output)
@@ -114,12 +134,21 @@ def run_ioping(device, count):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="ioping Prometheus exporter")
-    parser.add_argument("--interval-seconds", type=int, default=60, help="Interval between ioping runs in seconds")
-    parser.add_argument("--count", type=int, default=30, help="Number of ioping requests per run")
+    parser.add_argument(
+        "--interval-seconds",
+        type=int,
+        default=60,
+        help="Interval between ioping runs in seconds",
+    )
+    parser.add_argument(
+        "--count", type=int, default=30, help="Number of ioping requests per run"
+    )
     args = parser.parse_args()
 
     device = get_largest_device()
-    print(f"Starting ioping exporter using device {device}, interval {args.interval_seconds}s...")
+    print(
+        f"Starting ioping exporter using device {device}, interval {args.interval_seconds}s..."
+    )
 
     start_http_server(8000)
 
