@@ -31,7 +31,10 @@ iops_sustained = Gauge(
     "ioping_iops_sustained", "Sustained IOPS over full run", ["device"]
 )
 
-exporter_status = Gauge("ioping_exporter_status", "Status of the ioping exporter", ['device'])
+exporter_status = Gauge(
+    "ioping_exporter_status", "Status of the ioping exporter", ["device"]
+)
+
 
 def get_largest_device():
     try:
