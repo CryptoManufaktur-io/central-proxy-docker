@@ -27,6 +27,8 @@ services:
       - --web.console.templates=/usr/share/prometheus/consoles
       - --log.level=${LOG_LEVEL:-info}
     <<: *logging
+    extra_hosts:  # So we can scrape node-exporter
+      - "host.docker.internal:host-gateway"
     depends_on:
       - node-exporter
       - cadvisor
@@ -43,10 +45,13 @@ services:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)'
+      - '--collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|var/lib/docker/.+)($$|/)'
       - '--no-collector.ipvs'
       - '--collector.textfile.directory=${NODE_EXPORTER_COLLECTOR_MOUNT_PATH:-/home/}'
+      - '--collector.netdev.device-exclude=^(veth.*|docker.*|br-.*)$'
+      - '--web.listen-address=0.0.0.0:${NODE_EXPORTER_PORT:-9199}'
     pid: host
+    network_mode: host  # See all network interfaces
     restart: unless-stopped
     environment:
       - NODE_EXPORTER_COLLECTOR_MOUNT_PATH=${NODE_EXPORTER_COLLECTOR_MOUNT_PATH:-/dev/null}
@@ -60,7 +65,8 @@ services:
     labels:
       - metrics.scrape=true
       - metrics.path=/metrics
-      - metrics.port=9100
+      - metrics.host=host.docker.internal
+      - metrics.port=${NODE_EXPORTER_PORT:-9199}
     <<: *logging
 
   cadvisor:
