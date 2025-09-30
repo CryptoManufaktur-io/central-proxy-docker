@@ -29,4 +29,4 @@ To update Traefik and Prometheus, run `./ethd update` and `./ethd up`
 
 Apache v2 license
 
-This is central-proxy-docker v1.2.0
+This is central-proxy-docker v2.0.0
