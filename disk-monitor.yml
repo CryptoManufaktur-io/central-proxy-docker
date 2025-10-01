@@ -1,0 +1,34 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 100m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  disk-monitor:
+    image: disk-monitor
+    pull_policy: never
+    build:
+      context: ./disk-monitor
+    restart: unless-stopped
+    <<: *logging
+    # Access to raw block devices
+    privileged: true
+    volumes:
+      - /dev:/dev:ro
+    command: ["python3", "disk-monitor.py", "--interval-seconds", "60"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/metrics"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=8000
+
+networks:
+  default:
+    enable_ipv6: ${IPV6:-false}
