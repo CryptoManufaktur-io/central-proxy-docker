@@ -57,8 +57,6 @@ services:
     pull_policy: never
     build:
       context: ./traefik-utils
-      args:
-        - DOCKER_TAG=${PYTHON_DNS_TAG}
     restart: "unless-stopped"
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
