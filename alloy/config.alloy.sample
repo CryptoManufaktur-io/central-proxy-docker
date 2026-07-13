@@ -1,0 +1,59 @@
+// Grafana Alloy configuration
+// Copy this file to config.alloy and customize for your environment.
+// Documentation: https://grafana.com/docs/alloy/latest/
+
+// Remote write endpoint - send metrics to Mimir or Prometheus
+prometheus.remote_write "default" {
+  endpoint {
+    url = "https://mimir.example.com/api/v1/push"
+
+    // Optional: authentication headers
+    // headers = {
+    //   "X-Scope-OrgID" = "primary",
+    // }
+  }
+
+  external_labels = {
+    cluster = constants.hostname,
+  }
+}
+
+// Scrape Docker containers that opt-in via metrics.scrape=true label
+discovery.docker "containers" {
+  host = "unix:///var/run/docker.sock"
+}
+
+discovery.relabel "docker_metrics" {
+  targets = discovery.docker.containers.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_label_metrics_scrape"]
+    regex         = "true"
+    action        = "keep"
+  }
+
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label  = "job"
+  }
+
+  rule {
+    source_labels = ["__address__", "__meta_docker_container_label_metrics_port"]
+    regex         = "([^:]+)(?::\\d+)?;(\\d+)"
+    replacement   = "$1:$2"
+    target_label  = "__address__"
+  }
+}
+
+prometheus.scrape "docker" {
+  targets    = discovery.relabel.docker_metrics.output
+  forward_to = [prometheus.remote_write.default.receiver]
+}
+
+// Built-in node exporter
+prometheus.exporter.unix "node" {}
+
+prometheus.scrape "node_exporter" {
+  targets    = prometheus.exporter.unix.node.targets
+  forward_to = [prometheus.remote_write.default.receiver]
+}
