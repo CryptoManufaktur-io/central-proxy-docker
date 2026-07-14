@@ -1,0 +1,32 @@
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 10m
+      max-file: "3"
+      tag: '{{.ImageName}}|{{.Name}}|{{.ImageFullID}}|{{.FullID}}'
+
+services:
+  alloy:
+    image: grafana/alloy:latest
+    pid: host
+    volumes:
+      - ./alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - alloy-data:/var/lib/alloy/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro,rslave
+      - /proc:/host/proc:ro
+      - /sys:/sys:ro
+    command:
+      - run
+      - /etc/alloy/config.alloy
+      - --storage.path=/var/lib/alloy/data
+    restart: unless-stopped
+    labels:
+      - metrics.scrape=true
+      - metrics.path=/metrics
+      - metrics.port=12345
+    <<: *logging
+
+volumes:
+  alloy-data:
