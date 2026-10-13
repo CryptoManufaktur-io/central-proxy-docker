@@ -11,6 +11,8 @@ services:
     restart: "unless-stopped"
     build:
       context: ./prometheus
+      args:
+        - PROMETHEUS_TAG=${PROMETHEUS_TAG:-v3.15.0}
     image: prometheus:vd-local
     user: root
     pull_policy: never
@@ -40,7 +42,7 @@ services:
       - metrics.network=all
 
   node-exporter:
-    image: ${NODE_EXPORTER_IMAGE:-quay.io/prometheus/node-exporter}:${NODE_EXPORTER_TAG:-latest}
+    image: ${NODE_EXPORTER_IMAGE:-quay.io/prometheus/node-exporter}:${NODE_EXPORTER_TAG:-v1.12.1}
     command:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
@@ -71,7 +73,7 @@ services:
 
   cadvisor:
     restart: unless-stopped
-    image: ghcr.io/google/cadvisor:latest
+    image: ghcr.io/google/cadvisor:${CADVISOR_TAG:-v0.60.6}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /:/rootfs:ro,rslave

@@ -1,9 +1,10 @@
 # hadolint global ignore=DL3007,DL3008,DL3059
 ARG YQ_TAG=4
 ARG YQ_REPO=mikefarah/yq
+ARG PROMETHEUS_TAG=v3.15.0
 FROM $YQ_REPO:$YQ_TAG AS yq
 
-FROM prom/prometheus:latest
+FROM prom/prometheus:${PROMETHEUS_TAG}
 
 ARG USER=nobody
 

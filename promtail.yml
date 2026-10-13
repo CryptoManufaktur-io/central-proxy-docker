@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   promtail:
-    image: grafana/promtail:${PROMTAIL_TAG:-latest}
+    image: grafana/promtail:${PROMTAIL_TAG:-3.6.8}
     user: root
     volumes:
       - /etc/machine-id:/etc/machine-id:ro
