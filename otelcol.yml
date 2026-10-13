@@ -8,7 +8,7 @@ x-logging: &logging
 
 services:
   otel-collector:
-    image: otel/opentelemetry-collector:latest
+    image: otel/opentelemetry-collector:${OTELCOL_TAG:-latest}
     volumes:
       - ./otelcol:/etc/otelcol
     restart: "unless-stopped"

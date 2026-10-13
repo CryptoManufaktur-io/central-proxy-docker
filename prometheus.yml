@@ -40,7 +40,7 @@ services:
       - metrics.network=all
 
   node-exporter:
-    image: quay.io/prometheus/node-exporter:latest
+    image: ${NODE_EXPORTER_IMAGE:-quay.io/prometheus/node-exporter}:${NODE_EXPORTER_TAG:-latest}
     command:
       - '--path.rootfs=/host'
       - '--path.procfs=/host/proc'
