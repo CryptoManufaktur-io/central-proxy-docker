@@ -29,6 +29,7 @@ services:
       - --entrypoints.web.http.redirections.entrypoint.to=websecure
       - --entrypoints.web.http.redirections.entrypoint.scheme=https
       - --entrypoints.websecure.address=:${TRAEFIK_WEB_PORT}
+      - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=0
       - --metrics
       - --metrics.prometheus
       - --global.sendAnonymousUsage
