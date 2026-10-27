@@ -14,7 +14,7 @@ services:
       - --accesslog=${TRAEFIK_ACCESSLOG:-true}
       - --accesslog.format=json
       - --accesslog.filepath=/var/log/traefik/access.log
-      - --accesslog.bufferingsize=${TRAEFIK_ACCESSLOG_BUFFER:-100}
+      - --accesslog.bufferingsize=${TRAEFIK_ACCESSLOG_BUFFER:-10}
       - --accesslog.fields.defaultmode=keep
       - --accesslog.fields.headers.defaultmode=drop
       - --accesslog.fields.headers.names.User-Agent=keep
