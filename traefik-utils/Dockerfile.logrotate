@@ -1,0 +1,5 @@
+FROM alpine:3
+RUN apk add --no-cache logrotate
+COPY logrotate-entrypoint.sh /usr/local/bin/logrotate-entrypoint.sh
+RUN chmod +x /usr/local/bin/logrotate-entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/logrotate-entrypoint.sh"]

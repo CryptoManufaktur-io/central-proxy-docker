@@ -11,10 +11,14 @@ services:
     image: traefik:${TRAEFIK_TAG}
     restart: "unless-stopped"
     command:
-      # - --accesslog=true
-      # - --accesslog.format=json
-      # - --accesslog.fields.defaultmode=keep
-      # - --accesslog.fields.headers.defaultmode=keep
+      - --accesslog=${TRAEFIK_ACCESSLOG:-true}
+      - --accesslog.format=json
+      - --accesslog.filepath=/var/log/traefik/access.log
+      - --accesslog.bufferingsize=${TRAEFIK_ACCESSLOG_BUFFER:-100}
+      - --accesslog.fields.defaultmode=keep
+      - --accesslog.fields.headers.defaultmode=drop
+      - --accesslog.fields.headers.names.User-Agent=keep
+      - --accesslog.fields.headers.names.X-Forwarded-For=keep
       # - --certificatesResolvers.letsencrypt.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
       - --log.level=${LOG_LEVEL:-info}
       - --providers.file.directory=/configs
@@ -47,10 +51,31 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - certs:/letsencrypt
+      - accesslog:/var/log/traefik
       - ~/.aws:/root/.aws:ro
       - ./traefik-utils/configs:/configs:ro
       - /etc/localtime:/etc/localtime:ro
     <<: *logging
+
+  # Rotates the Traefik access log. It is kept on disk only and never scraped: promtail reads
+  # /var/lib/docker/containers, and with accesslog.filepath nothing is written to stdout.
+  accesslog-rotate:
+    image: accesslog-rotate:local
+    pull_policy: never
+    build:
+      context: ./traefik-utils
+      dockerfile: Dockerfile.logrotate
+    restart: "unless-stopped"
+    environment:
+      - ACCESSLOG_RETENTION_DAYS=${ACCESSLOG_RETENTION_DAYS:-30}
+    volumes:
+      - accesslog:/var/log/traefik
+      - /etc/localtime:/etc/localtime:ro
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "2"
 
   ddns:
     image: ddns-aws:local
@@ -74,6 +99,7 @@ services:
 
 volumes:
   certs:
+  accesslog:
 
 networks:
   default:

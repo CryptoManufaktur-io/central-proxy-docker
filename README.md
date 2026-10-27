@@ -23,6 +23,17 @@ use `ext-network.yml` in the repos that are to interface with it.
 For a quick start, install docker-ce with `./ethd install`, then `cp default.env .env`, adjust Traefik variables
 inside `.env`, and `./ethd up`
 
+## Access log
+
+Traefik writes a JSON access log to `/var/log/traefik/access.log` in the `accesslog` Docker volume. It is not
+written to stdout, so promtail (which reads container logs) does not collect it and nothing is shipped to Loki.
+The `accesslog-rotate` service rotates it daily and keeps `ACCESSLOG_RETENTION_DAYS` rotations (default 30,
+compressed). Headers are dropped except `User-Agent` and `X-Forwarded-For`. The request body is not logged, so
+the JSON-RPC method is not visible. Set `TRAEFIK_ACCESSLOG=false` to disable.
+
+Read it with `docker run --rm -v <project>_accesslog:/l alpine sh -c 'tail -n 50 /l/access.log'`, or from the
+volume path under `/var/lib/docker/volumes/`.
+
 To update Traefik and Prometheus, run `./ethd update` and `./ethd up`
 
 # License
