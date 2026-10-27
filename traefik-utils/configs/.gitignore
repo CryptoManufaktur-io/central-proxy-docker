@@ -1,3 +1,4 @@
 *
 !.gitignore
 !tls.toml
+!deny-debug-paths.yml

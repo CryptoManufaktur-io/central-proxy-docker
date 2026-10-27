@@ -1,0 +1,19 @@
+# Debug and metrics endpoints are not part of the public RPC surface. Node clients can serve
+# /debug/pprof, /debug/metrics/prometheus or /metrics on the same port as the JSON-RPC server; deny them at the
+# edge for every router, whatever host is requested. Only loopback may reach them through Traefik.
+http:
+  routers:
+    deny-debug-paths:
+      rule: "Path(`/debug`) || PathPrefix(`/debug/`) || PathPrefix(`/pprof/`) || Path(`/metrics`)"
+      priority: 100000
+      entryPoints:
+        - websecure
+      middlewares:
+        - deny-non-local
+      service: noop@internal
+      tls: {}
+  middlewares:
+    deny-non-local:
+      ipAllowList:
+        sourceRange:
+          - 127.0.0.1/32
